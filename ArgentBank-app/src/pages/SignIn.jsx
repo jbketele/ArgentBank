@@ -1,44 +1,38 @@
 import argentBankLogo from '../assets/images/argentBankLogo.png';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../redux/slices/userSlice';
 
 function SignIn() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const dispatch = useDispatch();
+  const error = useSelector((state) => state.user.error);
+  const loading = useSelector((state) => state.user.loading);
+  const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch('http://localhost:3001/api/v1/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: username,
-          password: password,
-        }),
-      });
+    console.log("Email:", email);
+console.log("Password:", password);
 
-      if (!response.ok) {
-        throw new Error('Invalid username or password');
-      }
+    if (!email || !password) {
+        console.log('Champs requis manquants');
+      return; // Ne rien faire si un champ est vide
+    }
 
-      const data = await response.json();
-      console.log('Login API Response:', data);
-
-      // Stocker le token
-      localStorage.setItem('token', data.body.token);
-
-      // Rediriger vers la page utilisateur
+    if (isAuthenticated) {
       navigate('/user');
-      
-    } catch (err) {
-      setError(err.message);
-      console.error(err);
+      return;
+    }
+
+    const resultAction = await dispatch(loginUser({ email, password }));
+    if (loginUser.fulfilled.match(resultAction)) {
+      navigate('/user');
     }
   };
 
@@ -62,12 +56,12 @@ function SignIn() {
 
           <form onSubmit={handleSignIn}>
             <div className="input-wrapper">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="email">Email</label>
               <input
                 type="text"
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
@@ -88,7 +82,13 @@ function SignIn() {
 
             {error && <p className="error-message">{error}</p>}
 
-            <button type="submit" className="sign-in-button">Sign In</button>
+            <button
+              type="submit"
+              className="sign-in-button"
+              disabled={!email || !password || loading}
+            >
+              {loading ? 'Loading...' : 'Sign In'}
+            </button>
           </form>
         </section>
       </main>
