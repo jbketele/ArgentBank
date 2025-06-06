@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  title: API Transactions ArgentBank (Local)
+  version: 1.0.0
+  description: API RESTful pour gérer les transactions bancaires d’un utilisateur sur un environnement local
+
+servers:
+  - url: http://localhost:5000/api
+    description: Serveur local backend
+
+tags:
+  - name: Transactions
+    description: Gestion des transactions bancaires
+  - name: Détails
+    description: Détails et mise à jour des catégories ou notes
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        amount:
+          type: number
+          format: float
+        balance:
+          type: number
+          format: float
+        type:
+          type: string
+        category:
+          type: string
+        notes:
+          type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+  /transactions:
+    get:
+      summary: Récupère toutes les transactions
+      tags:
+        - Transactions
+      parameters:
+        - in: query
+          name: accountId
+          schema:
+            type: string
+          description: ID du compte bancaire
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+          description: Filtrer par date
+      responses:
+        '200':
+          description: Liste des transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '400' :
+          description: Requête invalide
+        '401' :
+          description: Utilisateur non authentifié
+
+  /transactions/{id}:
+    get:
+      summary: Obtenir les détails d’une transaction
+      tags:
+        - Détails
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails d’une transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400' :
+          description: Transaction non trouvée
+        '401' :
+          description: Utilisateur non authentifié
+          
+
+  /transactions/{id}/category:
+    put:
+      summary: Modifier la catégorie d'une transaction
+      tags:
+        - Détails
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - category
+              properties:
+                category:
+                  type: string
+      responses:
+        '200':
+          description: Catégorie mise à jour avec succès
+        '400' :
+          description: Donnée de catégorie manquante ou invalide
+        '404' :
+          description: Transaction non trouvée
+
+  /transactions/{id}/notes:
+    put:
+      summary: Ajouter ou modifier une note
+      tags:
+        - Détails
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notes
+              properties:
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Note mise à jour avec succès
+        '400':
+           descritption: Champ "notes" requis
+        '404':
+           description: Transaction non trouvée
