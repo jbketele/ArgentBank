@@ -3,27 +3,37 @@ info:
   title: API Transactions ArgentBank (Local)
   version: 1.0.0
   description: API RESTful pour gérer les transactions bancaires d’un utilisateur sur un environnement local
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: http://localhost:5000/api
+  - url: http://localhost:3001/api
     description: Serveur local backend
 
 tags:
+  - name: Accounts
+    description: Gestion des comptes et des transactions par compte
   - name: Transactions
-    description: Gestion des transactions bancaires
-  - name: Détails
-    description: Détails et mise à jour des catégories ou notes
+    description: Détails et modification d’une transaction
 
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
 
   schemas:
     Transaction:
       type: object
+      required:
+        - id
+        - date
+        - description
+        - amount
+        - balance
+        - type
       properties:
         id:
           type: string
@@ -46,26 +56,45 @@ components:
           type: string
 
 security:
-  - bearerAuth: []
+  - tokenAuth: []
 
 paths:
-  /transactions:
+  /accounts:
     get:
+      operationId: getAllAccounts
+      summary: Récupère tous les comptes bancaires
+      security:
+        - tokenAuth: []
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: Liste des comptes bancaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '401' :
+          description: Utilisateur non authentifié
+        '500':
+          description: Erreur interne du serveur
+  /transactions/{accountId}:
+    get:
+      operationId: getTransactionsByAccount
       summary: Récupère toutes les transactions
+      security:
+        - tokenAuth: []
       tags:
         - Transactions
       parameters:
-        - in: query
+        - in: path
           name: accountId
+          required: true
           schema:
             type: string
           description: ID du compte bancaire
-        - in: query
-          name: date
-          schema:
-            type: string
-            format: date
-          description: Filtrer par date
       responses:
         '200':
           description: Liste des transactions
@@ -79,15 +108,22 @@ paths:
           description: Requête invalide
         '401' :
           description: Utilisateur non authentifié
+        '404':
+          description: Aucune transaction trouvée pour cet ID de compte
+        '500':
+          description: Erreur interne du serveur
 
-  /transactions/{id}:
+  /transactions/transaction/{idTransaction}:
     get:
+      operationId: getTransactionById
       summary: Obtenir les détails d’une transaction
+      security:
+        - tokenAuth: []
       tags:
-        - Détails
+        - Transactions
       parameters:
         - in: path
-          name: id
+          name: idTransaction
           required: true
           schema:
             type: string
@@ -102,16 +138,21 @@ paths:
           description: Transaction non trouvée
         '401' :
           description: Utilisateur non authentifié
+        '404' :
+          description: Transaction non trouvée
+        '500':
+          description: Erreur interne du serveur
           
-
-  /transactions/{id}/category:
-    put:
-      summary: Modifier la catégorie d'une transaction
+    patch:
+      operationId: updateTransaction
+      summary: Modifier la catégorie et/ou la note d'une transaction
+      security:
+        - tokenAuth: []
       tags:
-        - Détails
+        - Transactions
       parameters:
         - in: path
-          name: id
+          name: idTransaction
           required: true
           schema:
             type: string
@@ -121,45 +162,20 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - category
               properties:
                 category:
                   type: string
+                notes:
+                  type: string
+              additionalProperties: false
       responses:
         '200':
           description: Catégorie mise à jour avec succès
         '400' :
           description: Donnée de catégorie manquante ou invalide
+        '401' :
+          description: Utilisateur non authentifié
         '404' :
           description: Transaction non trouvée
-
-  /transactions/{id}/notes:
-    put:
-      summary: Ajouter ou modifier une note
-      tags:
-        - Détails
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - notes
-              properties:
-                notes:
-                  type: string
-      responses:
-        '200':
-          description: Note mise à jour avec succès
-        '400':
-           descritption: Champ "notes" requis
-        '404':
-           description: Transaction non trouvée
+        '500':
+          description: Erreur interne du serveur
