@@ -17,9 +17,6 @@ function SignIn() {
   const handleSignIn = async (e) => {
     e.preventDefault();
 
-    console.log("Email:", email);
-console.log("Password:", password);
-
     if (!email || !password) {
         console.log('Champs requis manquants');
       return; // Ne rien faire si un champ est vide
