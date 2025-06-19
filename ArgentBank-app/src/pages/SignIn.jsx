@@ -30,7 +30,7 @@ console.log("Password:", password);
       return;
     }
 
-    const resultAction = await dispatch(loginUser({ email, password }));
+    const resultAction = dispatch(loginUser({ email, password }));
     if (loginUser.fulfilled.match(resultAction)) {
       navigate('/user');
     }

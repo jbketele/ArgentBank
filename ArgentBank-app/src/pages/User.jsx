@@ -21,7 +21,7 @@ function User() {
 
   const handleSave = async () => {
     try {
-      await dispatch(updateUserProfile({ firstName, lastName }));
+      dispatch(updateUserProfile({ firstName, lastName }));
       dispatch(setUserProfile({ firstName, lastName, email: user.email }));
       setIsEditing(false);
     } catch (err) {

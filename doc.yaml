@@ -113,6 +113,31 @@ paths:
         '500':
           description: Erreur interne du serveur
 
+  /transactions:
+    get:
+      operationId: getCurrentMonthTransactions
+      summary: Récupère les transactions du mois en cours
+      security:
+        - tokenAuth: []
+      tags:
+        - Transactions
+      responses:
+        '200':
+          description: Liste des transactions du mois en cours
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '400' :
+          description: Requête invalide'
+        '401' :
+          description: Utilisateur non authentifié
+        '404':
+          description: Aucune transaction trouvée pour le mois en cours
+        '500':
+          description: Erreur interne du serveur
   /transactions/transaction/{idTransaction}:
     get:
       operationId: getTransactionById
