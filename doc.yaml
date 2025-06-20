@@ -212,6 +212,12 @@ paths:
         - tokenAuth: []
       tags:
         - Transactions
+      parameters:
+        - in: path
+          name: idTransaction
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -257,7 +263,6 @@ paths:
         '500':
           description: Erreur interne du serveur
 
-  /transactions/transaction/{idTransaction}:
     delete:
       operationId: deleteTransaction
       summary: Supprimer une transaction
